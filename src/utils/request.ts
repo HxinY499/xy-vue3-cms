@@ -1,4 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { ElNotification } from "element-plus";
+import router from "@/router";
+import storage from "./storage";
 // import { useUserStore } from "/@/store/modules/user";
 
 class Request {
@@ -12,10 +15,10 @@ class Request {
 
     this.instance.interceptors.request.use(
       (config) => {
-        // const token = useUserStore().getToken;
-        // if (token) {
-        //   config.headers!.Authorization = `Bearer ${token}`;
-        // }
+        const token = storage.get("vue3-token");
+        if (token) {
+          config.headers!.Authorization = `Bearer ${token}`;
+        }
         return config;
       },
       (err) => {
@@ -26,12 +29,17 @@ class Request {
     this.instance.interceptors.response.use(
       (res) => {
         // 拦截响应的数据
-        if (res.data.code === 0) {
-          return res.data.data;
-        }
         return res.data;
       },
       (err) => {
+        console.log("网络请求出错", err.response);
+        if (err.response.data === "无效的token~") {
+          router.push("/login");
+          ElNotification({
+            title: "登录信息已过期，请重新登录",
+            type: "warning",
+          });
+        }
         return err;
       }
     );
@@ -45,6 +53,7 @@ class Request {
           resolve(res as unknown as Promise<T>);
         })
         .catch((err) => {
+          console.log(err);
           reject(err);
         });
     });
