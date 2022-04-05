@@ -1,8 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-import { ElNotification } from "element-plus";
+import { ElNotification } from "element-plus/lib/components";
 import router from "@/router";
 import storage from "./storage";
-// import { useUserStore } from "/@/store/modules/user";
 
 class Request {
   private instance: AxiosInstance;

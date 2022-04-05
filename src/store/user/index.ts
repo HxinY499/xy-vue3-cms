@@ -11,8 +11,39 @@ export default {
   state: () => {
     return {
       token: "",
-      userInfo: {},
+      userLoading: false,
+      userInfo: storage.get("vue3-userInfo") || {},
       userMenus: {},
+      publicMenu: [
+        {
+          id: "publicMenu-1",
+          name: "系统功能",
+          type: 1,
+          children: [
+            {
+              id: "publicMenu-1-1",
+              name: "工作台",
+              type: 2,
+              url: "/main/workplace",
+              parentId: "publicMenu-1",
+            },
+            {
+              id: "publicMenu-1-2",
+              name: "系统设置",
+              type: 2,
+              url: "/main/settings",
+              parentId: "publicMenu-1",
+            },
+            {
+              id: "publicMenu-1-3",
+              name: "个人信息",
+              type: 2,
+              url: "/main/user-info",
+              parentId: "publicMenu-1",
+            },
+          ],
+        },
+      ],
     };
   },
   mutations: {
@@ -24,8 +55,8 @@ export default {
       state.userInfo = userInfo;
       storage.set("vue3-userInfo", userInfo);
     },
-    saveUserMenus(state, userMenus) {
-      state.userMenus = userMenus;
+    updateState(state, { key, value }) {
+      state[key] = value;
     },
   },
   actions: {
@@ -43,7 +74,8 @@ export default {
       }
     },
 
-    async getInitalUserInfoAction({ commit }, { id, token }) {
+    async getInitalUserInfoAction({ commit, state }, { id, token }) {
+      commit("updateState", { key: "userLoading", value: true });
       // 1.保存token
       commit("saveToken", token);
 
@@ -53,7 +85,9 @@ export default {
 
       // 3.用户菜单树
       const userMenus = await getUserMenusService(userInfo?.data?.role?.id);
-      commit("saveUserMenus", userMenus?.data);
+      const menus = state.publicMenu.concat(userMenus.data || []);
+      commit("updateState", { key: "userMenus", value: menus });
+      commit("updateState", { key: "userLoading", value: false });
     },
   },
 };
